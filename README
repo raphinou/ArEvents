@@ -1,0 +1,47 @@
+ArEvents
+========
+
+This is a Rails plugin enabling you to define listeners to ActiveRecord events.
+It has the same goals as the ActiveRecord observers, but is more flexible as it
+lets you define the listeners anywhere in your code.
+
+A listener is simply a ruby class having a class method named trigger that
+takes 2 arguments: the event fired and the object fireing the event.
+
+To access the functionality in a model, just include the ArEvents module.
+
+
+Example
+=======
+
+This code comes from the tests.
+If you have a model defined:
+
+class ArEventComment < ActiveRecord::Base
+end
+
+You can add the module to get access the the ArEvents funtionality:
+
+	ArEventComment.send(:include, ArEvents)
+
+Simply define a listener:
+
+	class ArEventCommentListener
+	  def self.trigger(evt, obj)
+	    puts "event #{evt} triggered by object #{obj.inspect}"
+	  end
+	end
+
+and attach it to the class you want to monitor, specifying the event to watch for:
+
+	ArEventComment.add_ar_event_listener(:before_validation, ArEventCommentListener)
+
+Now, each time an ArEventComment is validated, the ArEventCommentListener will be triggered:
+
+	@comment = ArEventComment.new
+	@comment.valid?
+	# event before_validation triggered by object #<ArEventComment ...>
+
+It works with inheritance, but the module needs to be included in every subclass.
+
+Copyright (c) 2009 Raphaël Bauduin, released under the MIT license
