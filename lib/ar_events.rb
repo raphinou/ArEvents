@@ -6,6 +6,7 @@ module ArEvents
       #define an attribute accessor on the class
       class << self
         attr_accessor :ar_events
+        attr_accessor :ignored_ar_events
       end
       #initialize the value of the attribute accessed by the ar_events attribute accessor
       @ar_events = {}
@@ -17,6 +18,7 @@ module ArEvents
         self.send cb, "ar_#{cb}_#{self.to_s}".to_sym
         # Initialize ar_event for that callback
         @ar_events[cb] = ArEvent.new(cb)
+        @ignored_ar_events = [] 
         # finally define the method that was added to the callback chain.
         # this method simply fires the corresponding event, which will trigger all listeners
         defining_class = self.to_s
@@ -35,31 +37,14 @@ module ArEvents
           #puts "listeners are (class #{self.class} ): #{self.class.ar_events[cb].listeners.inspect}"
           #puts "firing event #{cb} on class #{defining_class} in #{this_method_name} "
           #puts "listeners are (class #{defining_class} ): #{Object.const_get(defining_class).ar_events[cb].listeners.inspect}"
-          defining_class.constantize.ar_events[cb].fire(self) unless ignored_ar_events.include?(cb)
+          this_class = defining_class.constantize
+          this_class.ar_events[cb].fire(self) unless this_class.ignored_ar_events.include?(cb)
         end
       end
     end
     base.extend(ClassMethods)
   end
 
-  # Keep ignored_ar_events in an instance variable.
-  # Don't use attr_accessor due to need of initialisation
-  def ignored_ar_events
-    @ignored_ar_events ||= []
-  end
-  def ignored_ar_events=(a)
-    @ignored_ar_events = a
-  end
-  def initialize_ignored_ar_events
-    self.ignored_ar_events = []
-  end
-  def ignore_ar_event(*evt)
-    initialize_ignored_ar_events if self.ignored_ar_events.nil?
-    self.ignored_ar_events +=  evt.collect{|e| e.to_s}
-  end
-  def restore_ar_event(*evt)
-    self.ignored_ar_events -= evt.collect{|e| e.to_s }
-  end
 
   module ClassMethods
     def add_ar_event_listener(evt, listener)
@@ -74,6 +59,26 @@ module ArEvents
       self.ar_events.each do |k,v|
         self.ar_events[k] = ArEvent.new(k)             
       end
+    end
+    # Keep ignored_ar_events in an class instance variable.
+    def ignored_ar_events=(a)
+      self.ignored_ar_events = a
+    end
+    def initialize_ignored_ar_events
+      self.ignored_ar_events = []
+    end
+    def ignore_ar_events(*evt, &block)
+      if block
+        original_ignored_events = self.ignored_ar_events
+        self.ignored_ar_events +=  evt.collect{|e| e.to_s}
+        yield
+        self.ignored_ar_events = original_ignored_events
+      else
+        self.ignored_ar_events +=  evt.collect{|e| e.to_s}
+      end
+    end
+    def restore_ar_event(*evt)
+      self.ignored_ar_events -= evt.collect{|e| e.to_s }
     end
 # This causes the problem "can't dup NilClass" when instanciating subclass
 #    def inherited(subclass)

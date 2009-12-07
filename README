@@ -44,4 +44,16 @@ Now, each time an ArEventComment is validated, the ArEventCommentListener will b
 
 It works with inheritance, but the module needs to be included in every subclass.
 
+Events can be selectively ignored:
+
+	ArEventComment.ignore_ar_events(:before_create)
+	#some code
+	ArEventComment.ignore_ar_events(:before_create)
+
+or with a block of code:
+
+	ArEventComment.ignore_ar_events(:before_create) do 
+		#some code
+	end
+
 Copyright (c) 2009 Raphaël Bauduin, released under the MIT license
