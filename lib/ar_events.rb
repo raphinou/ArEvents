@@ -21,18 +21,21 @@ module ArEvents
         # this method simply fires the corresponding event, which will trigger all listeners
         defining_class = self.to_s
         define_method("ar_#{cb}_#{self.to_s}".to_sym) do
-          # we test if the object generating the event is of our own class or of a subclass
+          # we tested if the object generating the event is of our own class or of a subclass
           # only fire events for instances of our own class, not of subclasses
           # this is needed because callback chains are inherited. So a subclass will call all ar_event methods of all parents, 
           # which will result in multiple firing of the listeners of an event because all ar_event methods called, even those from parents, 
           # will use the listeners defined at the subclass level
-          if self.class.to_s != defining_class
-            #skipping these as it was not fired by an instance of our own class
-            return
-          end
+          # this code is not used anymore as we now call all listeners of the defining_class below
+          #if self.class.to_s != defining_class
+          #  #skipping these as it was not fired by an instance of our own class
+          #  return
+          #end
           #puts "firing event #{cb} on class #{self.class} in #{this_method_name} "
           #puts "listeners are (class #{self.class} ): #{self.class.ar_events[cb].listeners.inspect}"
-          self.class.ar_events[cb].fire(self) unless ignored_ar_events.include?(cb)
+          #puts "firing event #{cb} on class #{defining_class} in #{this_method_name} "
+          #puts "listeners are (class #{defining_class} ): #{Object.const_get(defining_class).ar_events[cb].listeners.inspect}"
+          defining_class.constantize.ar_events[cb].fire(self) unless ignored_ar_events.include?(cb)
         end
       end
     end

@@ -100,14 +100,14 @@ class ArEventsTest < ActiveSupport::TestCase
     assert_equal [ArEventComment], @comment.triggered, "resetting listeners didn't work"
 
 
-    #Problem: the clas instance variable ar_events is not available in subclasses, and this causes trouble
-    #tried to solve it with self.inherited but to no avail
-#    triggered = []
-#    @comment = ArEventSubComment.new
-#    @comment.triggered = triggered
-#    ArEventComment.add_ar_event_listener(:before_validation, ArEventCommentListener)
-#    @comment.valid?
-#    assert_equal [ArEventCommentListener], @comment.triggered
+   #Problem: the clas instance variable ar_events is not available in subclasses, and this causes trouble
+   #tried to solve it with self.inherited but to no avail
+    triggered = []
+    @comment = ArEventSubComment.new
+    @comment.triggered = triggered
+    ArEventComment.add_ar_event_listener(:before_validation, ArEventCommentListener)
+    @comment.valid?
+    assert_equal [ArEventCommentListener], @comment.triggered
 
    #Now we include the module in the subclass also!
 
@@ -120,15 +120,16 @@ class ArEventsTest < ActiveSupport::TestCase
     @comment = ArEventSubComment.new
     @comment.triggered = triggered
     @comment.valid?
-    assert_equal [], @comment.triggered, "the listener of the subclass was called when it shoudln't"
+    assert_equal [ ArEventCommentListener ], @comment.triggered, "the listener of the parent class was not called when it should have been"
+
 
     # add a listener to the subclass
     # the listener of the parent class should not be called
     triggered = []
     @comment = ArEventSubComment.new
     @comment.triggered = triggered
-    ArEventSubComment.add_ar_event_listener(:before_validation, ArEventCommentListener)
+    ArEventSubComment.add_ar_event_listener(:before_validation, SecondArEventCommentListener)
     @comment.valid?
-    assert_equal [ArEventCommentListener], @comment.triggered, "the listener of the subclass was not called as expected"
+    assert_equal [ArEventCommentListener,SecondArEventCommentListener], @comment.triggered, "the listener of the subclass was not called as expected"
   end
 end
