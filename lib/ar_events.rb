@@ -1,7 +1,7 @@
 # ArEvents
 module ArEvents
 
-  def self.included(base)
+  def self.extended(base)
     base.class_eval do
       #define an attribute accessor on the class
       class << self
@@ -42,11 +42,9 @@ module ArEvents
         end
       end
     end
-    base.extend(ClassMethods)
   end
 
 
-  module ClassMethods
     def add_ar_event_listener(evt, listener)
       raise "Callback requested (#{evt}) is unknown" unless ActiveRecord::Callbacks::CALLBACKS.include?(evt.to_s)
       self.ar_events[evt.to_s].add_listener listener
@@ -84,6 +82,5 @@ module ArEvents
 #    def inherited(subclass)
 #      subclass.instance_variable_set("@ar_events", instance_variable_get("@ar_events"))
 #    end
-  end
 end
 

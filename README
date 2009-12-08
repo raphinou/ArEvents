@@ -22,7 +22,7 @@ end
 
 You can add the module to get access the the ArEvents funtionality:
 
-	ArEventComment.send(:include, ArEvents)
+	ArEventComment.extend ArEvents
 
 Simply define a listener:
 

@@ -15,7 +15,7 @@ class ArEventComment < ActiveRecord::Base
   end
 end
 
-ArEventComment.send(:include, ArEvents)
+ArEventComment.extend ArEvents
 
 class ArEventSubComment < ArEventComment
 end
@@ -117,7 +117,7 @@ class ArEventsTest < ActiveSupport::TestCase
 
     # Add a listener to the parent class and none to the subclass
     ArEventComment.add_ar_event_listener(:before_validation, ArEventCommentListener)
-    ArEventSubComment.send(:include, ArEvents)
+    ArEventSubComment.extend ArEvents
     triggered = []
     @comment = ArEventSubComment.new
     @comment.triggered = triggered
